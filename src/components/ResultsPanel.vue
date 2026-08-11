@@ -378,9 +378,9 @@ function exportPacket() {
   gap: 8px;
 }
 .ev {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 10px 11px;
   border-radius: var(--radius-md);
   background: var(--bg-2);
@@ -394,10 +394,8 @@ function exportPacket() {
 .ev-cycles {
   font-size: 10.5px;
   color: var(--text-2);
-  text-align: right;
 }
 .ev-note {
-  grid-column: 1 / -1;
   font-size: 12px;
   line-height: 1.45;
   color: var(--text-1);
