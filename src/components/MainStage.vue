@@ -7,6 +7,8 @@ import TimelineView from './TimelineView.vue'
 import ResultsPanel from './ResultsPanel.vue'
 
 const ws = useWorkspaceStore()
+const props = defineProps<{ mobilePane?: 'packet' | 'evidence' | 'review' }>()
+const emit = defineEmits<{ (e: 'show-review'): void }>()
 
 const phase = computed(() => {
   if (ws.running) return 'running'
@@ -53,7 +55,7 @@ function restart() {
 </script>
 
 <template>
-  <main class="stage">
+  <main class="stage" :data-mobile-pane="props.mobilePane">
     <div class="stage-head">
       <div class="sh-left">
         <span class="sh-name mono">{{ ws.preset.scenario.name }}</span>
@@ -124,11 +126,16 @@ function restart() {
           <PipelineView :result="ws.result" :scenario-id="ws.preset.scenario.id" />
           <TimelineView :result="ws.result" :spans="ws.diagnosis?.spans" />
         </div>
-        <ResultsPanel />
+        <div class="review-pane">
+          <ResultsPanel />
+        </div>
       </div>
     </div>
 
     <div v-if="phase === 'review' || phase === 'converged'" class="stage-foot">
+      <button v-if="phase === 'review'" class="btn btn-accent mobile-review-btn" @click="emit('show-review')">
+        Review findings
+      </button>
       <button class="btn btn-outline" @click="restart">
         Reset run
       </button>
@@ -353,7 +360,11 @@ function restart() {
 }
 .stage-foot {
   display: flex;
+  gap: 8px;
   justify-content: flex-end;
+}
+.mobile-review-btn {
+  display: none;
 }
 @media (max-width: 900px) {
   .running,
@@ -362,6 +373,20 @@ function restart() {
   }
   .metric-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 980px) {
+  .stage[data-mobile-pane='evidence'] .review-pane {
+    display: none;
+  }
+  .stage[data-mobile-pane='review'] .evidence-surface {
+    display: none;
+  }
+  .stage[data-mobile-pane='review'] .review {
+    grid-template-columns: 1fr;
+  }
+  .stage[data-mobile-pane='evidence'] .mobile-review-btn {
+    display: inline-flex;
   }
 }
 @media (max-width: 520px) {
@@ -386,6 +411,10 @@ function restart() {
   }
   .sh-sub {
     white-space: normal;
+  }
+  .stage-foot {
+    display: grid;
+    grid-template-columns: 1fr;
   }
   .stage-foot .btn {
     width: 100%;

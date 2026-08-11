@@ -4,8 +4,14 @@ import { Play, RotateCcw, FileText, ChevronDown, ChevronRight, Database, Fingerp
 import { useWorkspaceStore } from '../stores/workspace'
 
 const ws = useWorkspaceStore()
+const emit = defineEmits<{ (e: 'ran'): void }>()
 const expanded = ref(false)
 const passCount = computed(() => ws.result?.checks.filter((c) => c.pass).length ?? 0)
+
+async function runFromPacket() {
+  emit('ran')
+  await ws.run(false)
+}
 </script>
 
 <template>
@@ -78,7 +84,7 @@ const passCount = computed(() => ws.result?.checks.filter((c) => c.pass).length 
     </section>
 
     <div class="rail-actions">
-      <button class="btn btn-accent run" :disabled="ws.running" @click="ws.run(false)">
+      <button class="btn btn-accent run" :disabled="ws.running" @click="runFromPacket">
         <Play v-if="!ws.running" :size="15" />
         <span v-else class="spinner" />
         {{ ws.running ? 'Running' : 'Run simulation' }}
