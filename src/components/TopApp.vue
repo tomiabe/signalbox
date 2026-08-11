@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Moon, Sun, Settings2, CircleDot, ShieldCheck } from 'lucide-vue-next'
+import { Moon, Sun, Settings2, CircleDot, HelpCircle, ShieldCheck } from 'lucide-vue-next'
 
 const theme = ref(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark')
 
@@ -13,7 +13,10 @@ function toggleTheme() {
   } catch {}
 }
 
-const emit = defineEmits<{ (e: 'open-settings'): void }>()
+const emit = defineEmits<{
+  (e: 'open-settings'): void
+  (e: 'open-glossary'): void
+}>()
 </script>
 
 <template>
@@ -35,6 +38,10 @@ const emit = defineEmits<{ (e: 'open-settings'): void }>()
     </div>
 
     <div class="topbar-right">
+      <button class="btn btn-icon btn-ghost" aria-label="Explain terms" title="Explain the workspace"
+        @click="emit('open-glossary')">
+        <HelpCircle />
+      </button>
       <button class="btn btn-icon btn-ghost" aria-label="Settings" title="Configure model"
         @click="emit('open-settings')">
         <Settings2 />

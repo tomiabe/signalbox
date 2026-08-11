@@ -4,16 +4,19 @@ import TopApp from './components/TopApp.vue'
 import SpecRail from './components/SpecRail.vue'
 import MainStage from './components/MainStage.vue'
 import SettingsModal from './components/SettingsModal.vue'
+import GlossaryDrawer from './components/GlossaryDrawer.vue'
 import { useWorkspaceStore } from './stores/workspace'
 
 type MobilePane = 'packet' | 'evidence' | 'review'
 
 const ws = useWorkspaceStore()
 const settingsOpen = ref(false)
+const glossaryOpen = ref(false)
 const mobilePane = ref<MobilePane>('packet')
 
 function onKey(e: KeyboardEvent) {
   if (e.key === 'Escape' && settingsOpen.value) settingsOpen.value = false
+  if (e.key === 'Escape' && glossaryOpen.value) glossaryOpen.value = false
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault()
     settingsOpen.value = !settingsOpen.value
@@ -33,7 +36,7 @@ watch(
 
 <template>
   <div class="shell">
-    <TopApp @open-settings="settingsOpen = true" />
+    <TopApp @open-settings="settingsOpen = true" @open-glossary="glossaryOpen = true" />
     <nav class="mobile-flow" aria-label="Mobile workspace sections">
       <button :class="{ active: mobilePane === 'packet' }" @click="mobilePane = 'packet'">Packet</button>
       <button :class="{ active: mobilePane === 'evidence' }" @click="mobilePane = 'evidence'">Evidence</button>
@@ -44,6 +47,7 @@ watch(
       <MainStage :mobile-pane="mobilePane" @show-review="mobilePane = 'review'" />
     </div>
     <SettingsModal v-if="settingsOpen" @close="settingsOpen = false" />
+    <GlossaryDrawer v-if="glossaryOpen" @close="glossaryOpen = false" />
   </div>
 </template>
 

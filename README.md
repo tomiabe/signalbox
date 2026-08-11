@@ -2,6 +2,8 @@
 
 **Evidence infrastructure for AI-generated engineering systems.** SignalBox starts from plain-language intent, runs a deterministic replay, exposes the evidence behind a failure, and verifies a scoped fix.
 
+[Live demo](https://tomiabe.github.io/signalbox/)
+
 > Don't trust the output. Trace the evidence.
 
 The point of the project is not to build a chip-design engine. It is a product-shaped portfolio case study about the human side of AI-native engineering: how a reviewer decides whether machine-generated work deserves trust.
@@ -20,6 +22,24 @@ SignalBox turns an intent into a review packet and walks through the loop in one
 
 The LLM never decides whether the system passed. It can only interpret the run and explain the evidence. The simulator and checks are deterministic code.
 
+## Where it fits
+
+SignalBox is one part of a larger AI-native engineering platform.
+
+A Chipforge-like system might cover:
+
+```text
+Intent -> Specification -> Design generation -> Simulation -> Evidence -> Patch -> Re-verification -> Synthesis -> Hardware
+```
+
+SignalBox focuses on the trust layer in the middle:
+
+```text
+Simulation -> Evidence -> Diagnosis -> Patch -> Re-verification
+```
+
+That makes it useful as a product-design exploration for the review experience: how a human understands and trusts what an AI-generated engineering system did.
+
 ## Current scenarios
 
 - **Hardware replay**: a bus/FIFO backpressure bug where a read-modify-write beat leaks credits and starves a producer.
@@ -30,6 +50,7 @@ The hardware scenario is the flagship because deterministic simulation makes the
 
 ## Key features
 
+- Plain-English explanation drawer for non-specialist reviewers.
 - Seeded simulation engine with reproducible traces.
 - Evidence graph tying intent, model, replay, evidence, and review into one packet.
 - Cycle scrubber with failure span chips.
@@ -99,3 +120,7 @@ SignalBox is a design-engineering exploration for companies building serious AI 
 The portfolio thesis is simple:
 
 **AI-generated engineering work needs an evidence layer a human can inspect.**
+
+## Presentation line
+
+> I designed and built a working concept for the human verification layer of an AI-native engineering platform. The point is not to replace the hardware engine. It is to make the engine's work reviewable, explainable, and trustworthy.
