@@ -6,7 +6,7 @@
 
 > Don't trust the output. Trace the evidence.
 
-The point of the project is not to build a chip-design engine. It is a product-shaped portfolio case study about the human side of AI-native engineering: how a reviewer decides whether machine-generated work deserves trust.
+The point of the project is not to build a complete chip-design engine. It is a product-shaped portfolio case study about the human side of AI-native engineering: how a reviewer decides whether machine-generated work deserves trust.
 
 ## What it does
 
@@ -26,7 +26,7 @@ The LLM never decides whether the system passed. It can only interpret the run a
 
 SignalBox is one part of a larger AI-native engineering platform.
 
-A Chipforge-like system might cover:
+An AI-assisted hardware design platform might cover:
 
 ```text
 Intent -> Specification -> Design generation -> Simulation -> Evidence -> Patch -> Re-verification -> Synthesis -> Hardware
@@ -39,6 +39,16 @@ Simulation -> Evidence -> Diagnosis -> Patch -> Re-verification
 ```
 
 That makes it useful as a product-design exploration for the review experience: how a human understands and trusts what an AI-generated engineering system did.
+
+## Who it is for
+
+SignalBox is designed for people working around generated hardware or technical systems:
+
+- hardware engineers reviewing generated designs
+- verification engineers inspecting failed checks and waveforms
+- AI/ML engineers evaluating model behaviour and data provenance
+- product teams building engineering tools where trust and evidence matter
+- technical leads who need a readable review packet instead of raw logs
 
 ## Current scenarios
 
@@ -115,7 +125,7 @@ signalbox/
 
 ## Why this exists
 
-SignalBox is a design-engineering exploration for companies building serious AI systems, especially systems like Chipforge where intent, generated artifacts, simulation, formal evidence, provenance, and verification have to stay connected.
+SignalBox is a design-engineering exploration for teams building serious AI-assisted engineering tools, especially tools where intent, generated artifacts, simulation, formal evidence, provenance, and verification have to stay connected.
 
 The portfolio thesis is simple:
 

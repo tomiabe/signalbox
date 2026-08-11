@@ -9,8 +9,16 @@ const sections = [
     body: 'SignalBox shows the review step after an AI has generated or changed a technical design. It helps a human ask: what did the AI think it was building, what evidence was collected, what failed, and did the fix actually work?',
   },
   {
-    title: 'Where this fits in a Chipforge-like product',
-    body: 'Chipforge-like platforms cover the larger journey from intent to hardware. SignalBox focuses on the trust layer inside that journey: simulation, evidence, diagnosis, patching, and re-verification.',
+    title: 'What type of software this is',
+    body: 'SignalBox is a concept for AI-assisted hardware and engineering design software. It sits near simulation, verification, and review: the part of the workflow where engineers inspect whether a generated design is actually safe to trust.',
+  },
+  {
+    title: 'Who would use it',
+    body: 'The primary users are hardware engineers, verification engineers, AI/ML engineers working on model evals, and product teams building technical design tools. A less technical stakeholder could also use it to understand the status of a review packet without reading raw logs.',
+  },
+  {
+    title: 'Where it fits',
+    body: 'In a larger hardware design platform, SignalBox would live after a design or patch has been generated and before that work is accepted. It helps connect simulation results, waveforms, failed checks, diagnosis, proposed fixes, and re-verification.',
   },
   {
     title: 'How to demo it',
@@ -38,7 +46,7 @@ const terms = [
     <header class="g-head">
       <div>
         <span class="g-kicker mono">plain English</span>
-        <h2>How to explain SignalBox</h2>
+        <h2>What is SignalBox?</h2>
       </div>
       <button class="btn btn-icon btn-ghost" aria-label="Close explanation" @click="emit('close')">
         <X :size="16" />
