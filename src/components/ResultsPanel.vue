@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { CheckCircle2, XCircle, Loader2, Sparkles, RefreshCw, ListChecks } from 'lucide-vue-next'
+import { CheckCircle2, CircleAlert, FileCheck2, Loader2, RefreshCw, Sparkles, XCircle } from 'lucide-vue-next'
 import { useWorkspaceStore } from '../stores/workspace'
 import type { Diagnosis } from '../lib/llm'
 
 const ws = useWorkspaceStore()
-
 const applying = ref(false)
+const reloading = ref(false)
 
 async function applyFix() {
-  if (ws.running) return
+  if (ws.running || reloading.value) return
   applying.value = true
   try {
     await ws.run(true)
@@ -19,14 +19,20 @@ async function applyFix() {
 }
 
 async function rerun() {
-  if (ws.running) return
-  await ws.run(false)
+  if (ws.running || applying.value) return
+  reloading.value = true
+  try {
+    await ws.run(false)
+  } finally {
+    reloading.value = false
+  }
 }
 
 watch(
   () => ws.stage,
   () => {
     applying.value = false
+    reloading.value = false
   },
 )
 
@@ -36,97 +42,109 @@ function dx(): Diagnosis | null {
 </script>
 
 <template>
-  <div v-if="ws.result" class="results">
-    <!-- Checks row -->
-    <section class="checks" aria-label="Simulation checks">
+  <aside v-if="ws.result" class="results" aria-label="Evidence review">
+    <section class="panel checks" aria-label="Verification checks">
       <div class="sec-head">
-        <span class="sec-title"><ListChecks :size="14" /> checks</span>
+        <span class="sec-title"><FileCheck2 :size="14" /> Verification</span>
         <span class="mono sec-hint">{{ ws.result.checks.filter((c) => c.pass).length }}/{{ ws.result.checks.length }} pass</span>
       </div>
-      <div class="check-grid">
+
+      <div class="check-list">
         <article v-for="c in ws.result.checks" :key="c.id" class="check" :class="{ pass: c.pass }">
-          <div class="c-top">
-            <span class="c-status">
-              <CheckCircle2 v-if="c.pass" :size="16" aria-hidden="true" />
-              <XCircle v-else :size="16" aria-hidden="true" />
-              <span class="visually-hidden">{{ c.pass ? 'Passed' : 'Failed' }}: {{ c.name }}</span>
-            </span>
-            <div class="c-main">
-              <span class="c-name mono">{{ c.id }}</span>
-              <span class="c-desc">{{ c.desc }}</span>
-            </div>
+          <div class="c-status">
+            <CheckCircle2 v-if="c.pass" :size="16" aria-hidden="true" />
+            <XCircle v-else :size="16" aria-hidden="true" />
+            <span class="visually-hidden">{{ c.pass ? 'Passed' : 'Failed' }}: {{ c.name }}</span>
           </div>
-          <div v-if="c.detail" class="c-meta">
-            <span class="c-row"><em>expected</em>{{ c.detail.expected }}</span>
-            <span class="c-row" :class="{ bad: !c.pass }"><em>actual</em>{{ c.detail.actual }}</span>
+          <div class="c-main">
+            <div class="c-title-row">
+              <span class="c-name mono">{{ c.id }}</span>
+              <span class="c-pill">{{ c.pass ? 'pass' : 'fail' }}</span>
+            </div>
+            <p>{{ c.desc }}</p>
+            <div v-if="c.detail" class="c-meta">
+              <span><em>expected</em>{{ c.detail.expected }}</span>
+              <span :class="{ bad: !c.pass }"><em>actual</em>{{ c.detail.actual }}</span>
+            </div>
           </div>
         </article>
       </div>
     </section>
 
-    <!-- Diagnosis (post-run, only on failure) -->
-    <section v-if="!ws.result.converged && ws.stage === 'diagnose'" class="diagnosis" aria-label="Diagnosis">
+    <section v-if="!ws.result.converged && ws.stage === 'diagnose'" class="panel diagnosis" aria-label="Diagnosis">
       <div class="dx-head">
         <span class="dx-icon"><Sparkles :size="15" /></span>
         <div class="dx-title-wrap">
-          <span class="dx-kicker">AI diagnosis</span>
+          <span class="dx-kicker">Machine note</span>
           <h3 class="dx-title">{{ dx()?.headline }}</h3>
         </div>
       </div>
+
       <p class="dx-body">{{ dx()?.rootCause }}</p>
 
       <div v-if="dx()?.evidence?.length" class="dx-evidence">
         <div v-for="(e, i) in dx()?.evidence" :key="i" class="ev">
           <span class="ev-key mono">{{ e.checkId }}</span>
-          <div class="ev-txt">
-            <span class="ev-cycles mono">{{ e.cycles }}</span>
-            <span class="ev-note">{{ e.note }}</span>
-          </div>
+          <span class="ev-cycles mono">{{ e.cycles }}</span>
+          <span class="ev-note">{{ e.note }}</span>
         </div>
       </div>
 
       <div class="dx-fix">
-        <div class="dx-fix-label">proposed fix · register the write strobe</div>
-        <div class="dx-fix-code mono">{{ ws.preset.fixedDesc }}</div>
+        <div class="dx-fix-label"><CircleAlert :size="13" /> Proposed patch</div>
+        <pre class="dx-fix-code mono">{{ ws.preset.fixedDesc }}</pre>
       </div>
 
       <div class="dx-actions">
-        <button class="btn btn-accent" :disabled="ws.running || applying" @click="applyFix">
+        <button class="btn btn-accent" :disabled="ws.running || applying || reloading" @click="applyFix">
           <span v-if="applying || ws.running"><Loader2 class="spin" :size="15" /></span>
           <Sparkles v-else :size="15" />
-          <template v-if="applying">Re-verifying…</template>
-          <template v-else>Apply fix &amp; re-verify</template>
+          <template v-if="applying">Re-verifying</template>
+          <template v-else>Apply patch and verify</template>
         </button>
-        <button class="btn btn-ghost" :disabled="ws.running" @click="rerun">
-          <RefreshCw :size="15" />
-          Re-run unfixed
+        <button class="btn btn-ghost" :disabled="ws.running || applying || reloading" @click="rerun">
+          <span v-if="reloading"><Loader2 class="spin" :size="15" /></span>
+          <RefreshCw v-else :size="15" />
+          {{ reloading ? 'Re-running' : 'Re-run failing case' }}
         </button>
       </div>
     </section>
 
-    <!-- Converged -->
-    <section v-else-if="ws.result.converged" class="converged">
+    <section v-else-if="ws.result.converged" class="panel converged">
       <div class="cv-check">
         <CheckCircle2 :size="22" />
       </div>
       <div>
-        <h3 class="cv-title">Verified · converged in {{ ws.result.iterations }} iterations</h3>
-        <p class="cv-sub">All {{ ws.result.checks.length }} checks pass. Datapath is backpressure-safe and credit-consistent.</p>
+        <h3 class="cv-title">Verified in {{ ws.result.iterations }} iterations</h3>
+        <p class="cv-sub">All checks pass. The replay is deterministic, the patch is scoped, and the evidence packet can be reviewed without trusting the model blindly.</p>
+        <button class="btn btn-outline compare" :disabled="ws.running || applying || reloading" @click="rerun">
+          <span v-if="reloading"><Loader2 class="spin" :size="15" /></span>
+          <RefreshCw v-else :size="15" />
+          Restore failing packet
+        </button>
       </div>
     </section>
-  </div>
+  </aside>
 </template>
 
 <style scoped>
 .results {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
+  min-width: 0;
+}
+.panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-1);
+  padding: 14px;
 }
 .sec-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 10px;
 }
 .sec-title {
@@ -137,41 +155,35 @@ function dx(): Diagnosis | null {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-2);
+  color: var(--text-1);
 }
 .sec-hint {
   font-size: 11.5px;
-  color: var(--text-3);
+  color: var(--text-2);
 }
-.check-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-}
-.check {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--bg-1);
-  padding: 14px;
+.check-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  transition: border-color 0.2s var(--ease-out);
+  gap: 10px;
+}
+.check {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-2);
 }
 .check.pass {
-  border-color: var(--signal-green-soft);
-}
-.c-top {
-  display: flex;
-  gap: 10px;
+  border-color: color-mix(in srgb, var(--signal-green) 28%, var(--border));
 }
 .c-status {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
   color: var(--err);
   background: var(--signal-red-soft);
 }
@@ -182,50 +194,69 @@ function dx(): Diagnosis | null {
 .c-main {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 7px;
   min-width: 0;
 }
-.c-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-0);
+.c-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
 }
-.c-desc {
+.c-name {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-0);
+  overflow-wrap: anywhere;
+}
+.c-pill {
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.check.pass .c-pill {
+  color: var(--ok);
+  background: var(--signal-green-soft);
+  border-color: transparent;
+}
+.check:not(.pass) .c-pill {
+  color: var(--err);
+  background: var(--signal-red-soft);
+  border-color: transparent;
+}
+.c-main p {
   font-size: 12px;
   line-height: 1.45;
-  color: var(--text-2);
+  color: var(--text-1);
 }
 .c-meta {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 5px;
-  padding-top: 10px;
+  padding-top: 9px;
   border-top: 1px solid var(--border);
-  font-size: 11.5px;
 }
-.c-row {
+.c-meta span {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  font-size: 11.5px;
   color: var(--text-1);
 }
-.c-row em {
+.c-meta em {
   font-style: normal;
-  color: var(--text-3);
+  color: var(--text-2);
   text-transform: uppercase;
   font-size: 10px;
   letter-spacing: 0.05em;
-  padding-top: 1px;
 }
-.c-row.bad {
+.c-meta .bad {
   color: var(--err);
 }
-
 .diagnosis {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--bg-1);
-  padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -240,7 +271,7 @@ function dx(): Diagnosis | null {
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: 9px;
+  border-radius: 8px;
   color: var(--accent-strong);
   background: var(--accent-soft);
   flex-shrink: 0;
@@ -252,15 +283,15 @@ function dx(): Diagnosis | null {
 }
 .dx-kicker {
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--accent-strong);
 }
 .dx-title {
   font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 650;
+  letter-spacing: 0;
   line-height: 1.35;
 }
 .dx-body {
@@ -274,33 +305,29 @@ function dx(): Diagnosis | null {
   gap: 8px;
 }
 .ev {
-  display: flex;
-  gap: 10px;
-  padding: 9px 11px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  padding: 10px 11px;
   border-radius: var(--radius-md);
   background: var(--bg-2);
   border: 1px solid var(--border);
 }
 .ev-key {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 650;
   color: var(--err);
-  background: var(--signal-red-soft);
-  padding: 3px 7px;
-  border-radius: 5px;
-  height: fit-content;
-  flex-shrink: 0;
-}
-.ev-txt {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 12px;
-  color: var(--text-1);
 }
 .ev-cycles {
   font-size: 10.5px;
-  color: var(--text-3);
+  color: var(--text-2);
+  text-align: right;
+}
+.ev-note {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-1);
 }
 .dx-fix {
   border: 1px dashed var(--border-strong);
@@ -308,12 +335,15 @@ function dx(): Diagnosis | null {
   padding: 11px 13px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   background: var(--bg-2);
 }
 .dx-fix-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--accent-strong);
@@ -323,20 +353,18 @@ function dx(): Diagnosis | null {
   color: var(--text-1);
   white-space: pre-wrap;
   line-height: 1.6;
+  margin: 0;
 }
 .dx-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
-
 .converged {
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  padding: 18px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--signal-green-soft);
+  border-color: color-mix(in srgb, var(--signal-green) 34%, var(--border));
   background: var(--signal-green-soft);
 }
 .cv-check {
@@ -344,7 +372,7 @@ function dx(): Diagnosis | null {
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--ok);
   background: var(--bg-1);
   flex-shrink: 0;
@@ -352,14 +380,17 @@ function dx(): Diagnosis | null {
 }
 .cv-title {
   font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 650;
+  letter-spacing: 0;
 }
 .cv-sub {
   font-size: 13px;
   color: var(--text-1);
   margin-top: 3px;
   line-height: 1.5;
+}
+.compare {
+  margin-top: 12px;
 }
 .spin {
   animation: sb-spin 0.8s linear infinite;

@@ -1,28 +1,28 @@
 # SignalBox
 
-**A design-verification workspace.** Turn plain-language requirements into inspectable, deterministic hardware models — simulate, fail, diagnose, fix, and converge. Built as a portfolio piece to show what a design engineer brings to complex, data-heavy, AI-assisted systems.
+**A design-verification workspace.** Turn plain-language requirements into inspectable, deterministic hardware models: simulate, fail, diagnose, fix, and converge. Built as a portfolio piece to show what a design engineer brings to complex, data-heavy, AI-assisted systems.
 
 > **AI for interpretation; deterministic code for execution and verification.**
-> The simulator is a seeded, side-effect-free cycle trace, so a given run is perfectly reproducible. The LLM never influences the outcome — it only reads the trace and interprets it.
+> The simulator is a seeded, side-effect-free cycle trace, so a given run is perfectly reproducible. The LLM never influences the outcome: it only reads the trace and interprets it.
 
 ## What it does
 
 SignalBox takes an English-language design intent, derives a spec from it, and runs a deterministic datapath simulation of a *hardware backpressure* bug. It walks the full verification loop in a single screen:
 
-1. **Describe** — a plain-English intent becomes a structured derived spec.
-2. **Simulate** — a seeded cycle-trace datapath runs the design.
-3. **Fail** — the run collapses under a real, deterministic bug.
-4. **Diagnose** — AI diagnoses the failure with an evidence-backed trace (or a robust local fallback).
-5. **Fix** — apply the fix and re-run.
-6. **Re-verify** — the checks re-run against the same contract.
-7. **Converged** — green banner once the design passes.
+1. **Describe**: a plain-English intent becomes a structured derived spec.
+2. **Simulate**: a seeded cycle-trace datapath runs the design.
+3. **Fail**: the run collapses under a real, deterministic bug.
+4. **Diagnose**: AI diagnoses the failure with an evidence-backed trace (or a robust local fallback).
+5. **Fix**: apply the fix and re-run.
+6. **Re-verify**: the checks re-run against the same contract.
+7. **Converged**: green banner once the design passes.
 
 ### The bug under the hood
 
-A **credit/backpressure leak**: on a misaligned read-modify-write strobe, a beat is consumed but never latched — a credit silently never returns. Over time the effective credit pool erodes and starves the producer. That is why the bug only shows up under *bursty* load and not steady state:
+A **credit/backpressure leak**: on a misaligned read-modify-write strobe, a beat is consumed but never latched, meaning a credit silently never returns. Over time the effective credit pool erodes and starves the producer. That is why the bug only shows up under *bursty* load and not steady state:
 
-- **Unfixed**: throughput collapses to ~8–9%, and the producer hits a 128-cycle starvation stall.
-- **Fixed**: the design converges to ~104–105% (data always drained, never a beat dropped).
+- **Unfixed**: throughput collapses to ~8-9%, and the producer hits a 128-cycle starvation stall.
+- **Fixed**: the design converges to ~104-105% (data always drained, never a beat dropped).
 
 Two seeded presets ship in the box (`bus_axi_lite/f2d`, `us_bvme/byte-en`) and both verify to converge once fixed.
 
@@ -73,10 +73,10 @@ signalbox/
 
 ## Design notes
 
-- **Design review pass** — the UI was run through the Rams a11y/design review; findings (via `aria-label` on icon-only controls, `sr-only` pass/fail status, chip keyboard `aria-pressed`, `prefers-reduced-motion` overrides) were applied.
-- **Light/dark** — full token system keyed on `data-theme`; the timeline and occupancy meter stay legible in both.
-- **Determinism everywhere** — the sim seed, the trace, and the check thresholds are all fixed, so the demo converges identically every run.
+- **Design review pass**: the UI was run through the Rams a11y/design review; findings (via `aria-label` on icon-only controls, `sr-only` pass/fail status, chip keyboard `aria-pressed`, `prefers-reduced-motion` overrides) were applied.
+- **Light/dark**: full token system keyed on `data-theme`; the timeline and occupancy meter stay legible in both.
+- **Determinism everywhere**: the sim seed, the trace, and the check thresholds are all fixed, so the demo converges identically every run.
 
 ## Why this exists
 
-This project demonstrates the *product-design skill* that a company like EzzyBills or Chipforge cares about: taking a complex, nondeterministic system (backpressure, credit pools, RMW beats) and making it **inspectable, explainable, and converge-on-a-fix** for a human — the same shape of problem as AI document extraction, approval workflows, and integration logic.
+This project demonstrates the *product-design skill* that a company like EzzyBills or Chipforge cares about: taking a complex, nondeterministic system (backpressure, credit pools, RMW beats) and making it **inspectable, explainable, and converge-on-a-fix** for a human, which is the same shape of problem as AI document extraction, approval workflows, and integration logic.

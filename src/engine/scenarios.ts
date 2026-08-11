@@ -4,6 +4,8 @@ export interface ScenarioPreset {
   scenario: Scenario
   intent: string
   known: string[]
+  evidence: string[]
+  provenance: string[]
   fixedDesc: string
 }
 
@@ -17,12 +19,22 @@ export const presets: ScenarioPreset[] = [
       'FIFO capacity 8 slots, credit-capped backpressure',
       'Consumer drains one beat per cycle when data is present',
     ],
+    evidence: [
+      'testbench: tb_throughput, tb_starvation_window, tb_credit_integrity',
+      'trace: 140 deterministic cycles, seed 4137',
+      'artifact: FIFO occupancy, credits, accepted beats, dropped RMW markers',
+    ],
+    provenance: [
+      'Source: public bus-handshake pattern',
+      'License: synthetic model, no vendor IP',
+      'Governance: deterministic run can be replayed offline',
+    ],
     fixedDesc:
       '// align RMW write strobe so a consumed beat is always latched\nassign s_axi_wready = ~rd_dropped; // never leak a credit',
     scenario: {
       id: 'bus-rd-fifo',
       name: 'bus_axi_lite/f2d',
-      summary: 'bursty master → credit-capped FIFO → slow consumer',
+      summary: 'bursty master to credit-capped FIFO to slow consumer',
       fixed: false,
       seed: 4137,
       cycles: 140,
@@ -43,12 +55,22 @@ export const presets: ScenarioPreset[] = [
       'Both sides are rate-limited by wait-states',
       'A dropped lock must never silently eat its credit',
     ],
+    evidence: [
+      'testbench: tb_throughput, tb_starvation_window, tb_credit_integrity',
+      'trace: 150 deterministic cycles, seed 7',
+      'artifact: wait-state overlap, credit return, dropped lock markers',
+    ],
+    provenance: [
+      'Source: synthetic peripheral-bus workload',
+      'License: generated fixture for portfolio use',
+      'Governance: no scraped standard text or private RTL',
+    ],
     fixedDesc:
       '// latch the gack when the pipe is full-proximate\nassign back_flushed = ram_ready && ~rd_overlap; // credit always returns',
     scenario: {
       id: 'bus-overlap',
       name: 'us_bvme/byte-en',
-      summary: 'shared peripheral bus → lossless byte channel',
+      summary: 'shared peripheral bus to lossless byte channel',
       fixed: false,
       seed: 7,
       cycles: 150,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Terminal, CheckCircle2 } from 'lucide-vue-next'
+import { Activity, CheckCircle2, GitCompareArrows, Play, ShieldAlert, Terminal } from 'lucide-vue-next'
 import { useWorkspaceStore } from '../stores/workspace'
 import PipelineView from './PipelineView.vue'
 import TimelineView from './TimelineView.vue'
@@ -18,14 +18,32 @@ const phase = computed(() => {
 const header = computed(() => {
   switch (phase.value) {
     case 'running':
-      return 'SMELTR · simulating'
+      return 'Replay in progress'
     case 'converged':
-      return 'Verified design'
+      return 'Verified evidence'
     case 'review':
-      return 'Simulation · iteration 1'
+      return 'Failure under review'
     default:
-      return 'From intent to verified bus'
+      return 'Intent to replayable evidence'
   }
+})
+
+const metrics = computed(() => {
+  if (!ws.result) {
+    return [
+      { label: 'trace', value: `${ws.preset.scenario.cycles} cyc` },
+      { label: 'seed', value: `${ws.preset.scenario.seed}` },
+      { label: 'checks', value: '3' },
+      { label: 'mode', value: 'ready' },
+    ]
+  }
+
+  return [
+    { label: 'throughput', value: `${(ws.result.observedThroughput / ws.preset.scenario.targetRate * 100).toFixed(0)}%` },
+    { label: 'stalled', value: `${ws.result.stalledCycles} cyc` },
+    { label: 'iteration', value: `${ws.result.iterations}` },
+    { label: 'mode', value: ws.result.converged ? 'verified' : 'inspect' },
+  ]
 })
 
 function restart() {
@@ -34,7 +52,7 @@ function restart() {
 </script>
 
 <template>
-  <div class="stage">
+  <main class="stage">
     <div class="stage-head">
       <div class="sh-left">
         <span class="sh-name mono">{{ ws.preset.scenario.name }}</span>
@@ -47,47 +65,63 @@ function restart() {
       </span>
     </div>
 
+    <div class="metric-row" aria-label="Run metrics">
+      <div v-for="m in metrics" :key="m.label" class="metric" :class="{ emphasis: m.label === 'mode' }">
+        <span>{{ m.label }}</span>
+        <strong class="mono">{{ m.value }}</strong>
+      </div>
+    </div>
+
     <div class="stage-body">
-      <!-- Idle: explain the run -->
       <div v-if="phase === 'idle'" class="empty">
         <Terminal :size="26" class="empty-ic" />
-        <h3>Turn intent into an inspectable datapath</h3>
+        <h3>Open an evidence trail for a system that might lie by omission</h3>
         <p>
-          Describe the system on the left, then run the simulation. SignalBox
-          builds a deterministic model, watches it fail under a backpressure bug,
-          and walks you to a verified fix.
+          The workspace turns intent into a deterministic replay, then gives the
+          reviewer checks, trace spans, provenance, and a fix loop they can trust.
         </p>
+        <div class="empty-steps" aria-label="Review loop">
+          <span><Activity :size="14" /> simulate</span>
+          <span><ShieldAlert :size="14" /> inspect</span>
+          <span><GitCompareArrows :size="14" /> verify</span>
+        </div>
         <button class="btn btn-accent" @click="ws.run(false)">
-          <Play :size="15" /> Run the first simulation
+          <Play :size="15" /> Run evidence replay
         </button>
       </div>
 
-      <!-- Running: animated pipeline + live log -->
       <div v-else-if="phase === 'running'" class="running" aria-live="polite">
-        <div class="run-glance card">
+        <div class="run-glance">
           <PipelineView :result="null" />
         </div>
-        <div class="run-log card">
-          <div class="log-head mono">signalbox · sim.log --seed {{ ws.preset.scenario.seed }}</div>
+        <div class="run-log">
+          <div class="log-head mono">signalbox sim.log seed={{ ws.preset.scenario.seed }}</div>
           <div class="log-lines mono">
-            <div class="ll">Deriving dataflow from intent…</div>
-            <div class="ll dim">Parsing &quot;credit-capped backpressure&quot;</div>
-            <div class="ll dim">Structuring RMW path</div>
-            <div class="ll active"><span class="clock-mini" aria-hidden="true"></span>Running cycle <b>{{ ws.progress }}</b>/{{
-              ws.preset.scenario.cycles }}</div>
+            <div class="ll">Deriving evidence contract from intent</div>
+            <div class="ll dim">Loading deterministic fixture</div>
+            <div class="ll dim">Collecting trace, checks, and provenance</div>
+            <div class="ll active">
+              <span class="clock-mini" aria-hidden="true"></span>
+              Running cycle <b>{{ ws.progress }}</b>/{{ ws.preset.scenario.cycles }}
+            </div>
           </div>
-          <div class="prog"><span class="prog-fill" :style="{ width: ws.progress + '%' }"></span></div>
+          <div
+            class="prog"
+            role="progressbar"
+            aria-label="Evidence replay progress"
+            :aria-valuenow="ws.progress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <span class="prog-fill" :style="{ width: ws.progress + '%' }"></span>
+          </div>
         </div>
       </div>
 
-      <!-- Review / converged: show model + timeline + checks -->
       <div v-else class="review">
-        <div class="rv-top">
-          <div class="card model-card">
-            <PipelineView :result="ws.result" />
-            <hr class="divider" />
-            <TimelineView :result="ws.result" :spans="ws.diagnosis?.spans" />
-          </div>
+        <div class="evidence-surface">
+          <PipelineView :result="ws.result" />
+          <TimelineView :result="ws.result" :spans="ws.diagnosis?.spans" />
         </div>
         <ResultsPanel />
       </div>
@@ -98,7 +132,7 @@ function restart() {
         Reset run
       </button>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped>
@@ -108,7 +142,7 @@ function restart() {
   gap: 14px;
   padding: 20px 22px 22px;
   min-width: 0;
-  overflow-x: hidden;
+  overflow: auto;
 }
 .stage-head {
   display: flex;
@@ -156,14 +190,42 @@ function restart() {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-1) 82%, transparent);
+}
+.metric span {
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.metric strong {
+  color: var(--text-0);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.metric.emphasis {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+}
 .stage-body {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-.stage { max-width: 100%; }
-
-.idle {
+.empty {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -171,23 +233,43 @@ function restart() {
   padding: 34px 26px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: var(--bg-1);
-  max-width: 560px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--signal-cyan-soft) 70%, transparent), transparent 55%),
+    var(--bg-1);
+  max-width: 680px;
 }
 .empty-ic {
-  color: var(--accent-strong);
+  color: var(--signal-cyan);
 }
-.idle h3 {
-  font-size: 17px;
+.empty h3 {
+  font-size: 20px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
+  line-height: 1.25;
 }
-.idle p {
+.empty p {
   font-size: 13.5px;
   line-height: 1.6;
   color: var(--text-1);
+  max-width: 560px;
 }
-
+.empty-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.empty-steps span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg-2);
+  color: var(--text-2);
+  font-size: 12px;
+}
 .running {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -195,7 +277,13 @@ function restart() {
   min-height: 320px;
   align-items: start;
 }
-.run-head {
+.run-glance,
+.run-log {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-1);
+}
+.run-glance {
   padding: 18px;
 }
 .run-log {
@@ -243,30 +331,47 @@ function restart() {
 .prog-fill {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  background: linear-gradient(90deg, var(--signal-cyan), var(--accent-strong));
   border-radius: 3px;
   transition: width 0.1s linear;
 }
-
 .review {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+  gap: 16px;
+  align-items: start;
 }
-.model-card {
+.evidence-surface {
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-1) 88%, transparent);
 }
 .stage-foot {
   display: flex;
   justify-content: flex-end;
 }
-
 @media (max-width: 900px) {
-  .running {
+  .running,
+  .review {
     grid-template-columns: 1fr;
+  }
+  .metric-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .stage {
+    padding: 16px 14px 18px;
+  }
+  .metric-row {
+    grid-template-columns: 1fr;
+  }
+  .sh-sub {
+    white-space: normal;
   }
 }
 </style>

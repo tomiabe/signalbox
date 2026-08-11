@@ -64,8 +64,8 @@ function clear() {
 }
 
 function spanLabel(c: (typeof trace.value)[number] | null) {
-  if (!c) return '–'
-  if (c.producerState === 'stalled') return 'stalled · backpressure'
+  if (!c) return '-'
+  if (c.producerState === 'stalled') return 'stalled, backpressure'
   if (c.missedCredit) return 'credit leak'
   if (c.producerBeat) return 'producing'
   return 'idle'
@@ -75,11 +75,15 @@ function spanLabel(c: (typeof trace.value)[number] | null) {
 <template>
   <div class="tl">
     <div class="tl-head">
-      <div class="legend">
-        <span class="lg"><i class="sw produce" /></span>produces
-        <span class="lg"><i class="sw drain" /></span>drains
-        <span class="lg"><i class="sw drop" /></span>dropped
-        <span class="lg"><i class="sw stall" /></span>stalled
+      <div>
+        <span class="tl-kicker mono">trace inspector</span>
+        <h3>Scrub the exact cycles behind the finding.</h3>
+        <div class="trace-legend" aria-label="Timeline color legend">
+          <span><i class="sw produce" aria-hidden="true"></i> produce</span>
+          <span><i class="sw drain" aria-hidden="true"></i> drain</span>
+          <span><i class="sw drop" aria-hidden="true"></i> dropped</span>
+          <span><i class="sw stall" aria-hidden="true"></i> stalled</span>
+        </div>
       </div>
       <div class="tl-tools">
         <template v-if="spans && spans.length">
@@ -89,9 +93,10 @@ function spanLabel(c: (typeof trace.value)[number] | null) {
             class="span-chip"
             :class="{ on: focus === i }"
             :aria-pressed="focus === i"
+            :title="`Focus ${s.label}`"
             @click="focus === i ? clear() : setFocus(i)"
           >
-            <Crosshair :size="11" />
+            <Crosshair :size="11" aria-hidden="true" />
             {{ s.label }}
           </button>
         </template>
@@ -112,21 +117,22 @@ function spanLabel(c: (typeof trace.value)[number] | null) {
         :class="[band(i).class, { hl: band(i).hl }]"
         :data-hl="band(i).hl"
         :style="{ height: band(i).pct + '%' }"
-        :title="`cycle ${t.cycle}: ${t.producerState} · occupancy ${t.occupancy} · credits ${t.credits}`"
+        :title="`cycle ${t.cycle}: ${t.producerState}, occupancy ${t.occupancy}, credits ${t.credits}`"
         :aria-label="`cycle ${t.cycle}: ${t.producerState}, occupancy ${t.occupancy}, credits ${t.credits}`"
         @mouseenter="hover = i"
         @mouseleave="hover = null"
-        @click="sel = i"
+        @click="sel = sel === i ? null : i"
       ></button>
     </div>
 
     <div class="tl-foot mono">
-      <span>c</span><b class="cnum">{{ activeCycle ? activeCycle.cycle : '–' }}</b>
-      <span class="sep">·</span>
-      <span>occ</span><b>{{ activeCycle ? activeCycle.occupancy : '–' }}<i>/{{ cap }}</i></b>
-      <span class="sep">·</span>
-      <span>cred</span><b>{{ activeCycle ? activeCycle.credits : '–' }}</b>
-      <span class="sep">·</span>
+      <span>cycle</span><b class="cnum">{{ activeCycle ? activeCycle.cycle : '-' }}</b>
+      <span class="sep">/</span>
+      <span>occupancy</span><b>{{ activeCycle ? activeCycle.occupancy : '-' }}<i>/{{ cap }}</i></b>
+      <span class="sep">/</span>
+      <span>credits</span><b>{{ activeCycle ? activeCycle.credits : '-' }}</b>
+      <span class="sep">/</span>
+      <span>state</span>
       <span class="active" :title="activeCycle ? activeCycle.events.join(', ') : ''">
         {{ spanLabel(activeCycle) }}
       </span>
@@ -142,7 +148,7 @@ export default { inheritAttrs: false }
 .tl {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 .tl-head {
   display: flex;
@@ -151,21 +157,41 @@ export default { inheritAttrs: false }
   gap: 10px;
   flex-wrap: wrap;
 }
-.legend,
 .tl-tools {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
   flex-wrap: wrap;
 }
-.lg {
+.tl-kicker {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.tl h3 {
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+.trace-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+}
+.trace-legend span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 11.5px;
   color: var(--text-2);
 }
-.lg .sw {
+.sw {
   width: 9px;
   height: 9px;
   border-radius: 3px;
@@ -207,11 +233,13 @@ export default { inheritAttrs: false }
   display: flex;
   align-items: flex-end;
   gap: 1.5px;
-  height: 96px;
+  height: 132px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 8px 8px 0;
-  background: var(--bg-1);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-2) 64%, transparent), transparent),
+    var(--bg-1);
   overflow-x: auto;
   overflow-y: hidden;
   min-width: 0;
@@ -231,8 +259,9 @@ export default { inheritAttrs: false }
   transform: translateY(-1px);
 }
 .cell.hl {
-  outline: 2px solid var(--accent-strong);
+  outline: 2px solid var(--signal-cyan);
   outline-offset: 1px;
+  box-shadow: 0 0 0 4px var(--signal-cyan-soft);
 }
 .tl-foot {
   display: flex;
@@ -241,6 +270,7 @@ export default { inheritAttrs: false }
   font-size: 11.5px;
   color: var(--text-2);
   padding: 0 2px;
+  flex-wrap: wrap;
 }
 .tl-foot b {
   color: var(--text-0);
@@ -252,7 +282,7 @@ export default { inheritAttrs: false }
   font-weight: 450;
 }
 .tl-foot .active {
-  color: var(--accent-strong);
+  color: var(--signal-cyan);
 }
 .sep {
   color: var(--border-strong);

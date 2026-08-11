@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Moon, Sun, Settings2, CircleDot } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { Moon, Sun, Settings2, CircleDot, ShieldCheck } from 'lucide-vue-next'
 
-const theme = computed(() =>
-  document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark',
-)
+const theme = ref(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark')
 
 function toggleTheme() {
   const next = theme.value === 'dark' ? 'light' : 'dark'
+  theme.value = next
   document.documentElement.setAttribute('data-theme', next)
   try {
     localStorage.setItem('signalbox-theme', next)
@@ -23,14 +22,15 @@ const emit = defineEmits<{ (e: 'open-settings'): void }>()
       <span class="brand-mark" aria-hidden="true">
         <CircleDot :size="16" :stroke-width="2.2" />
       </span>
-      <span class="brand-name">signalbox</span>
-      <span class="brand-sub mono">ns</span>
+      <span class="brand-name">SignalBox</span>
+      <span class="brand-sub mono">evidence workspace</span>
     </div>
 
     <div class="topbar-center">
       <span class="live chip" status="accent">
         <span class="dot"></span>
-        smeltr · live
+        <ShieldCheck :size="13" />
+        local eval run
       </span>
     </div>
 
@@ -53,10 +53,11 @@ const emit = defineEmits<{ (e: 'open-settings'): void }>()
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 52px;
-  padding: 0 16px;
+  min-height: 56px;
+  padding: 0 18px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-0);
+  background: color-mix(in srgb, var(--bg-0) 86%, transparent);
+  backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
   z-index: 30;
@@ -72,13 +73,14 @@ const emit = defineEmits<{ (e: 'open-settings'): void }>()
   width: 26px;
   height: 26px;
   border-radius: 7px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+  background: linear-gradient(135deg, var(--accent-soft), var(--signal-cyan-soft));
+  color: var(--signal-cyan);
+  border: 1px solid var(--border);
 }
 .brand-name {
   font-weight: 600;
   font-size: 14px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 .brand-sub {
   color: var(--text-3);
@@ -105,7 +107,7 @@ const emit = defineEmits<{ (e: 'open-settings'): void }>()
   50% { opacity: 0.4; }
 }
 @media (max-width: 640px) {
-  .brand-name { display: none; }
+  .brand-sub { display: none; }
   .topbar-center { position: static; transform: none; margin-left: auto; margin-right: auto; }
 }
 </style>

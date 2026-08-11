@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Play, RotateCcw, FileText, ChevronDown, ChevronRight } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { Play, RotateCcw, FileText, ChevronDown, ChevronRight, Database, Fingerprint, GitBranch } from 'lucide-vue-next'
 import { useWorkspaceStore } from '../stores/workspace'
 
 const ws = useWorkspaceStore()
 const expanded = ref(false)
+const passCount = computed(() => ws.result?.checks.filter((c) => c.pass).length ?? 0)
 </script>
 
 <template>
   <aside class="rail">
     <div class="rail-head">
-      <span class="rail-title">intent</span>
-      <span class="rail-hint mono">spec</span>
+      <span class="rail-title">Review packet</span>
+      <span class="rail-hint mono">intent.json</span>
     </div>
 
     <div class="scenario">
@@ -24,7 +25,19 @@ const expanded = ref(false)
       </select>
     </div>
 
-    <label class="visually-hidden" for="intent-input">Describe the system you want in plain language</label>
+    <div
+      class="packet-status"
+      :class="{ verified: ws.result?.converged, failed: ws.result && !ws.result.converged }"
+      aria-live="polite"
+    >
+      <div>
+        <span class="status-kicker mono">{{ ws.result ? `${passCount}/${ws.result.checks.length} checks` : 'not run' }}</span>
+        <strong>{{ ws.result?.converged ? 'Verified' : ws.result ? 'Needs review' : 'Ready for evidence' }}</strong>
+      </div>
+      <Fingerprint :size="18" aria-hidden="true" />
+    </div>
+
+    <label class="scenario-label" for="intent-input">User intent</label>
     <textarea
       id="intent-input"
       class="textarea intent"
@@ -37,7 +50,7 @@ const expanded = ref(false)
       <button class="known-toggle" @click="expanded = !expanded" :aria-expanded="expanded">
         <ChevronDown v-if="expanded" :size="14" />
         <ChevronRight v-else :size="14" />
-        <span>Derived spec</span>
+        <span>Derived contract</span>
         <span class="mono count-n">{{ ws.preset.known.length }}</span>
       </button>
       <ul v-if="expanded" class="known-list">
@@ -46,9 +59,23 @@ const expanded = ref(false)
         </li>
       </ul>
       <div v-else class="known-empty">
-        Spec derived from intent. Expand to inspect.
+        Contract derived from intent. Expand to inspect before running.
       </div>
     </div>
+
+    <section class="mini-panel" aria-label="Evidence artifacts">
+      <div class="mini-title"><Database :size="13" aria-hidden="true" /> Evidence artifacts</div>
+      <ul>
+        <li v-for="item in ws.preset.evidence" :key="item">{{ item }}</li>
+      </ul>
+    </section>
+
+    <section class="mini-panel" aria-label="Provenance">
+      <div class="mini-title"><GitBranch :size="13" aria-hidden="true" /> Provenance</div>
+      <ul>
+        <li v-for="item in ws.preset.provenance" :key="item">{{ item }}</li>
+      </ul>
+    </section>
 
     <div class="rail-actions">
       <button class="btn btn-accent run" :disabled="ws.running" @click="ws.run(false)">
@@ -62,7 +89,7 @@ const expanded = ref(false)
     </div>
 
     <p class="rail-note mono">
-      <FileText :size="13" /> signals.ts · verif mesh
+      <FileText :size="13" /> replayable trace, no external data
     </p>
   </aside>
 </template>
@@ -72,10 +99,12 @@ const expanded = ref(false)
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 18px 16px;
+  padding: 18px;
   border-right: 1px solid var(--border);
-  background: var(--bg-0);
+  background: color-mix(in srgb, var(--bg-0) 94%, transparent);
+  color: var(--text-0);
   min-width: 0;
+  overflow-y: auto;
 }
 .rail-head {
   display: flex;
@@ -92,7 +121,7 @@ const expanded = ref(false)
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-3);
+  color: var(--text-1);
 }
 .scenario-select {
   font-family: var(--font-mono);
@@ -102,10 +131,14 @@ const expanded = ref(false)
 .scenario-select option {
   font-family: var(--font-sans);
 }
+.rail-hint {
+  color: var(--text-1);
+  font-size: 11px;
+}
 .rail-title {
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 .rail-step {
   color: var(--text-3);
@@ -114,7 +147,39 @@ const expanded = ref(false)
   letter-spacing: 0.06em;
 }
 .intent {
-  min-height: 96px;
+  min-height: 118px;
+}
+.packet-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-1);
+  color: var(--text-1);
+}
+.packet-status strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--text-0);
+}
+.packet-status svg {
+  color: var(--signal-cyan);
+}
+.packet-status.verified {
+  border-color: color-mix(in srgb, var(--signal-green) 34%, var(--border));
+  background: var(--signal-green-soft);
+}
+.packet-status.failed {
+  border-color: color-mix(in srgb, var(--signal-red) 30%, var(--border));
+  background: var(--signal-red-soft);
+}
+.status-kicker {
+  color: var(--text-1);
+  font-size: 11px;
 }
 .spec-wrap {
   display: flex;
@@ -164,7 +229,7 @@ const expanded = ref(false)
   width: 6px;
   height: 6px;
   border-radius: 2px;
-  background: var(--accent);
+  background: var(--signal-cyan);
   flex-shrink: 0;
   margin-top: 5px;
 }
@@ -188,6 +253,37 @@ const expanded = ref(false)
   color: var(--text-3);
   font-size: 11px;
   margin-top: auto;
+}
+.mini-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-1) 74%, transparent);
+}
+.mini-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--text-1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.mini-panel ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 0;
+}
+.mini-panel li {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-0);
 }
 .visually-hidden {
   position: absolute;

@@ -28,7 +28,7 @@ const SLOTS: Record<BeatType, number> = { awa: 1, data: 1, rmw: 2 }
  * the FIFO is near full, the write strobe misaligns. The beat spends its credit
  * but is never latched, so it never drains and its credit is never returned.
  * Repeated under bursty load this silently erodes the credit pool until the
- * producer starves — then recovers as periodically a correct drain returns a
+ * producer starves, then recovers as periodically a correct drain returns a
  * credit. Self-healing and conditional, so hard to spot on a single run.
  */
 export function simulate(scenario: Scenario): SimResult {
@@ -148,7 +148,7 @@ function runChecks(
       detail: {
         cycles: 'full run',
         actual: `${(observedThroughput / scenario.targetRate * 100).toFixed(0)}% of target`,
-        expected: `≥ 100% of target`,
+        expected: '>= 100% of target',
       },
     },
     {

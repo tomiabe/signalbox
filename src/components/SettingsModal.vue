@@ -120,7 +120,7 @@ function clear() {
 .m-title h3 {
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 .m-sub {
   font-size: 12px;

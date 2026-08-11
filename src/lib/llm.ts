@@ -40,7 +40,7 @@ async function callLLM(messages: { role: string; content: string }[]): Promise<s
   return data?.choices?.[0]?.message?.content ?? ''
 }
 
-// --- Offline fallback: deterministic, referenced to the actual sim numbers.
+// Offline fallback: deterministic, referenced to the actual sim numbers.
 
 export interface Diagnosis {
   diagnosis: 'failed'
@@ -56,7 +56,7 @@ export function spansFor(sim: SimResult): Diagnosis['spans'] {
   const t = sim.trace
   if (!t.length) return []
 
-  // Longest contiguous starvation window (drive tb_starvation_window).
+  // Longest contiguous starvation window, drives tb_starvation_window.
   let sStart = -1
   let sLen = 0
   let cur = -1
@@ -75,7 +75,7 @@ export function spansFor(sim: SimResult): Diagnosis['spans'] {
     }
   }
 
-  // First dropped-beat region (drive tb_credit_integrity).
+  // First dropped-beat region, drives tb_credit_integrity.
   const firstDrop = t.findIndex((c) => c.beatStuck)
   let dropEnd = firstDrop
   if (firstDrop >= 0) {
@@ -94,24 +94,24 @@ export function spansFor(sim: SimResult): Diagnosis['spans'] {
 
 export function buildLocalDiagnosis(sim: SimResult, remedy: string): Diagnosis {
   const integrity = sim.checks.find((c) => c.id === 'tb_credit_integrity')
-  const stall = sim.checks.find((c) => c.id === 'tb_no_starvation')
+  const stall = sim.checks.find((c) => c.id === 'tb_starvation_window')
   const through = sim.checks.find((c) => c.id === 'tb_throughput')
 
   return {
     diagnosis: 'failed',
-    headline: 'TB_CREDIT_INTEGRITY fails: credits leak on the RMW path.',
+    headline: 'TB_CREDIT_INTEGRITY fails because credits leak on the RMW path.',
     rootCause:
       "An RMW beat accepted while the FIFO is within two slots of full is dropped on a misaligned write strobe. It is never drained by the consumer, so its credit is never returned. Over a bursty window this silently depletes available credits.",
     evidence: [
       {
         checkId: 'tb_credit_integrity',
-        cycles: `RMW path · ${integrity?.detail?.actual ?? 'n/a'}`,
+        cycles: `RMW path: ${integrity?.detail?.actual ?? 'n/a'}`,
         note: 'Credits are deducted once, but the beat is not latched, so the consumer never drains it and never returns the credit.',
       },
       {
-        checkId: 'tb_no_starvation',
+        checkId: 'tb_starvation_window',
         cycles: `observed ${stall?.detail?.actual ?? 'n/a'}`,
-        note: 'Once credits dry up, the producer stalls until the consumer returns credits on other, correctly-drained beats — this is why the failure is transient and self-healing.',
+        note: 'Once credits dry up, the producer stalls until the consumer returns credits on other correctly drained beats. This is why the failure is transient and self healing.',
       },
       {
         checkId: 'tb_throughput',

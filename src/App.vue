@@ -36,14 +36,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   display: flex;
   flex-direction: column;
   background: var(--bg-0);
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-softer) 55%, transparent), transparent 210px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border) 34%, transparent) 1px, transparent 1px),
+    linear-gradient(180deg, color-mix(in srgb, var(--border) 34%, transparent) 1px, transparent 1px);
+  background-size: auto, 42px 42px, 42px 42px;
 }
 .layout {
   flex: 1;
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: 360px minmax(0, 1fr);
   min-height: 0;
 }
-@media (max-width: 860px) {
+@media (max-width: 980px) {
   .layout {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
