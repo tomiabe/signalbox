@@ -105,7 +105,7 @@ async function runFromPacket() {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 18px;
+  padding: 18px 18px 34px;
   border-right: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg-0) 94%, transparent);
   color: var(--text-0);
@@ -329,7 +329,7 @@ async function runFromPacket() {
 
 @media (max-width: 520px) {
   .rail {
-    padding: 14px;
+    padding: 14px 14px 40px;
     gap: 12px;
   }
   .rail-head {

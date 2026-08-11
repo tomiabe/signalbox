@@ -142,7 +142,7 @@ const metrics = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 20px 22px 22px;
+  padding: 20px 22px 36px;
   min-width: 0;
   overflow: auto;
 }
@@ -344,7 +344,7 @@ const metrics = computed(() => {
   align-items: start;
 }
 .evidence-surface {
-  padding: 18px;
+  padding: 18px 18px 34px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -386,7 +386,7 @@ const metrics = computed(() => {
 }
 @media (max-width: 520px) {
   .stage {
-    padding: 16px 14px 18px;
+    padding: 16px 14px 40px;
   }
   .stage-head {
     align-items: flex-start;
@@ -401,7 +401,7 @@ const metrics = computed(() => {
   }
   .run-glance,
   .evidence-surface {
-    padding: 14px;
+    padding: 14px 14px 36px;
   }
   .empty {
     padding: 24px 18px;

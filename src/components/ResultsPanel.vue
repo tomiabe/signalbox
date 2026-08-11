@@ -206,7 +206,7 @@ function exportPacket() {
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding-bottom: 28px;
+  padding-bottom: 34px;
 }
 .panel {
   border: 1px solid var(--border);
@@ -473,7 +473,7 @@ function exportPacket() {
 
 @media (max-width: 520px) {
   .results {
-    padding-bottom: 36px;
+    padding-bottom: 40px;
   }
   .panel {
     padding: 12px;
