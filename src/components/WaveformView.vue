@@ -246,4 +246,14 @@ function selectCycle(index: number) {
   fill: transparent;
   cursor: crosshair;
 }
+
+@media (max-width: 520px) {
+  .wave-head {
+    align-items: flex-start;
+  }
+  .wave-scroll {
+    margin-left: -2px;
+    margin-right: -2px;
+  }
+}
 </style>

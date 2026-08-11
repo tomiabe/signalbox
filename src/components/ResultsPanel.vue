@@ -433,6 +433,9 @@ function exportPacket() {
   gap: 8px;
   flex-wrap: wrap;
 }
+.dx-actions .btn {
+  flex: 1 1 150px;
+}
 .converged {
   display: flex;
   gap: 14px;
@@ -467,5 +470,34 @@ function exportPacket() {
 }
 .spin {
   animation: sb-spin 0.8s linear infinite;
+}
+
+@media (max-width: 520px) {
+  .panel {
+    padding: 12px;
+  }
+  .check {
+    grid-template-columns: 1fr;
+  }
+  .c-status {
+    width: 28px;
+    height: 28px;
+  }
+  .c-title-row,
+  .c-meta span {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .dx-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .dx-actions .btn,
+  .compare {
+    width: 100%;
+  }
+  .converged {
+    flex-direction: column;
+  }
 }
 </style>

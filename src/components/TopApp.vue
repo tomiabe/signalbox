@@ -107,7 +107,28 @@ const emit = defineEmits<{ (e: 'open-settings'): void }>()
   50% { opacity: 0.4; }
 }
 @media (max-width: 640px) {
+  .topbar {
+    min-height: 52px;
+    padding: 0 12px;
+    gap: 10px;
+  }
+  .brand {
+    min-width: 0;
+  }
+  .brand-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .brand-sub { display: none; }
-  .topbar-center { position: static; transform: none; margin-left: auto; margin-right: auto; }
+  .topbar-center {
+    position: static;
+    transform: none;
+    margin-left: auto;
+  }
+}
+@media (max-width: 520px) {
+  .topbar-center {
+    display: none;
+  }
 }
 </style>

@@ -296,4 +296,22 @@ export default { inheritAttrs: false }
 .sep {
   color: var(--border-strong);
 }
+
+@media (max-width: 520px) {
+  .tl-head {
+    align-items: flex-start;
+  }
+  .tl-tools {
+    width: 100%;
+  }
+  .span-chip {
+    flex: 1 1 130px;
+    justify-content: center;
+  }
+  .tl-body {
+    height: 112px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+}
 </style>

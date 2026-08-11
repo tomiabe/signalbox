@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { X, Sparkles, Lock, Globe } from 'lucide-vue-next'
+import { X, Sparkles, Lock, Globe, KeyRound } from 'lucide-vue-next'
 import { getConfigured, setKey } from '../lib/llm'
 import { useWorkspaceStore } from '../stores/workspace'
 
@@ -64,7 +64,7 @@ function clear() {
 
     <div class="m-foot">
       <button class="btn btn-ghost" @click="clear">
-        <Key :size="15" /> Clear key
+        <KeyRound :size="15" /> Clear key
       </button>
       <div class="spacer"></div>
       <button class="btn btn-outline" @click="emit('close')">Cancel</button>
@@ -155,5 +155,30 @@ function clear() {
 }
 .spacer {
   flex: 1;
+}
+
+@media (max-width: 520px) {
+  .modal {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+  .m-head {
+    padding: 14px;
+  }
+  .m-body {
+    padding: 14px;
+    overflow-y: auto;
+  }
+  .m-foot {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 12px 14px;
+  }
+  .m-foot .btn:first-child {
+    grid-column: 1 / -1;
+  }
+  .spacer {
+    display: none;
+  }
 }
 </style>

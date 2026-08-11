@@ -368,11 +368,27 @@ function restart() {
   .stage {
     padding: 16px 14px 18px;
   }
+  .empty {
+    padding: 24px 18px;
+  }
+  .empty h3 {
+    font-size: 18px;
+  }
+  .empty-steps {
+    width: 100%;
+  }
+  .empty-steps span {
+    flex: 1 1 120px;
+    justify-content: center;
+  }
   .metric-row {
     grid-template-columns: 1fr;
   }
   .sh-sub {
     white-space: normal;
+  }
+  .stage-foot .btn {
+    width: 100%;
   }
 }
 </style>

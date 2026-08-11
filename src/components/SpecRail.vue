@@ -105,6 +105,7 @@ const passCount = computed(() => ws.result?.checks.filter((c) => c.pass).length 
   color: var(--text-0);
   min-width: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .rail-head {
   display: flex;
@@ -115,6 +116,19 @@ const passCount = computed(() => ws.result?.checks.filter((c) => c.pass).length 
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
+}
+.scenario::after {
+  content: '';
+  position: absolute;
+  right: 13px;
+  bottom: 13px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text-2);
+  border-bottom: 1.5px solid var(--text-2);
+  transform: rotate(45deg);
+  pointer-events: none;
 }
 .scenario-label {
   font-size: 11px;
@@ -124,9 +138,14 @@ const passCount = computed(() => ws.result?.checks.filter((c) => c.pass).length 
   color: var(--text-1);
 }
 .scenario-select {
+  appearance: none;
+  -webkit-appearance: none;
   font-family: var(--font-mono);
   font-size: 12px;
   cursor: pointer;
+  padding-right: 38px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .scenario-select option {
   font-family: var(--font-sans);
@@ -292,5 +311,38 @@ const passCount = computed(() => ws.result?.checks.filter((c) => c.pass).length 
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .rail {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow: visible;
+  }
+}
+
+@media (max-width: 520px) {
+  .rail {
+    padding: 14px;
+    gap: 12px;
+  }
+  .rail-head {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .rail-hint {
+    overflow-wrap: anywhere;
+  }
+  .packet-status {
+    align-items: flex-start;
+  }
+  .rail-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+  .rail-note {
+    align-items: flex-start;
+    line-height: 1.4;
+  }
 }
 </style>

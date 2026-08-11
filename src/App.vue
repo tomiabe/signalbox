@@ -32,6 +32,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
 <style scoped>
 .shell {
+  min-height: 100dvh;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -49,10 +50,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   min-height: 0;
 }
 @media (max-width: 980px) {
+  .shell {
+    height: auto;
+  }
   .layout {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
     overflow-y: auto;
+    min-height: auto;
   }
 }
 </style>
