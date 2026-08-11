@@ -33,7 +33,7 @@ const emit = defineEmits<{
       <span class="live chip" status="accent">
         <span class="dot"></span>
         <ShieldCheck :size="13" />
-        offline evidence run
+        simulated evidence run
       </span>
     </div>
 
