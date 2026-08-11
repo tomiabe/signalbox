@@ -14,13 +14,13 @@ const emit = defineEmits<{
 }>()
 
 const trace = computed(() => props.result?.trace ?? [])
-const width = 1000
+const width = computed(() => Math.max(620, trace.value.length * 7 + 32))
 const height = 214
 const left = 96
 const right = 28
 const laneHeight = 38
 const laneGap = 8
-const plotWidth = computed(() => width - left - right)
+const plotWidth = computed(() => width.value - left - right)
 const col = computed(() => plotWidth.value / Math.max(1, trace.value.length - 1))
 
 const cursorIdx = computed(() => props.selected ?? props.hovered)
@@ -202,14 +202,11 @@ function selectCycle(index: number) {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--bg-2) 74%, transparent), transparent),
     var(--bg-1);
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: hidden;
 }
 .wave-svg {
   display: block;
-  width: 100%;
-  height: auto;
-  min-height: 172px;
 }
 .lane-rule {
   stroke: var(--border);

@@ -20,7 +20,7 @@ const phase = computed(() => {
 const header = computed(() => {
   switch (phase.value) {
     case 'running':
-      return 'Replay in progress'
+      return ws.fixed ? 'Patch verification in progress' : 'Replay in progress'
     case 'converged':
       return 'Verified evidence'
     case 'review':
@@ -98,14 +98,14 @@ function restart() {
           <PipelineView :result="null" :scenario-id="ws.preset.scenario.id" />
         </div>
         <div class="run-log">
-          <div class="log-head mono">signalbox sim.log seed={{ ws.preset.scenario.seed }}</div>
+          <div class="log-head mono">{{ ws.fixed ? 'signalbox verify.log' : 'signalbox sim.log' }} seed={{ ws.preset.scenario.seed }}</div>
           <div class="log-lines mono">
-            <div class="ll">Deriving evidence contract from intent</div>
-            <div class="ll dim">Loading deterministic fixture</div>
-            <div class="ll dim">Collecting trace, checks, and provenance</div>
+            <div class="ll">{{ ws.fixed ? 'Applying proposed patch' : 'Deriving evidence contract from intent' }}</div>
+            <div class="ll dim">{{ ws.fixed ? 'Replaying fixed packet with same seed' : 'Loading deterministic fixture' }}</div>
+            <div class="ll dim">{{ ws.fixed ? 'Re-running checks against original contract' : 'Collecting trace, checks, and provenance' }}</div>
             <div class="ll active">
               <span class="clock-mini" aria-hidden="true"></span>
-              Running cycle <b>{{ ws.progress }}</b>/{{ ws.preset.scenario.cycles }}
+              {{ ws.fixed ? 'Verifying' : 'Running' }} cycle <b>{{ ws.progress }}</b>/{{ ws.preset.scenario.cycles }}
             </div>
           </div>
           <div
@@ -283,7 +283,6 @@ function restart() {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
-  min-height: clamp(520px, calc(100dvh - 220px), 760px);
   align-items: start;
 }
 .run-glance,
@@ -294,7 +293,6 @@ function restart() {
 }
 .run-glance {
   padding: 18px;
-  min-height: 260px;
 }
 .run-log {
   padding: 14px;
@@ -350,7 +348,6 @@ function restart() {
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
   gap: 16px;
   align-items: start;
-  min-height: clamp(520px, calc(100dvh - 220px), 760px);
 }
 .evidence-surface {
   padding: 18px;
@@ -407,10 +404,6 @@ function restart() {
   }
   .sh-sub {
     white-space: normal;
-  }
-  .running,
-  .review {
-    min-height: auto;
   }
   .run-glance,
   .evidence-surface {

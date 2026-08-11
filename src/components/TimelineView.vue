@@ -241,7 +241,7 @@ export default { inheritAttrs: false }
 .tl-body {
   display: flex;
   align-items: flex-end;
-  gap: 1px;
+  gap: 1.5px;
   height: 132px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -249,7 +249,7 @@ export default { inheritAttrs: false }
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--bg-2) 64%, transparent), transparent),
     var(--bg-1);
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: hidden;
   min-width: 0;
   scrollbar-width: thin;
@@ -257,7 +257,7 @@ export default { inheritAttrs: false }
 .cell {
   border: none;
   padding: 0;
-  min-width: 1px;
+  min-width: 3px;
   flex: 1 1 0;
   border-radius: 2px 2px 0 0;
   cursor: pointer;
@@ -312,9 +312,6 @@ export default { inheritAttrs: false }
     height: 112px;
     padding-left: 7px;
     padding-right: 7px;
-  }
-  .cell {
-    border-radius: 1.5px 1.5px 0 0;
   }
 }
 </style>
