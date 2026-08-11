@@ -56,6 +56,7 @@ const steps = computed(() => [
   display: flex;
   flex-direction: column;
   gap: 16px;
+  container-type: inline-size;
 }
 .pipe-head {
   display: flex;
@@ -163,7 +164,7 @@ const steps = computed(() => [
   height: 1px;
   background: var(--border-strong);
 }
-@media (max-width: 1120px) {
+@container (max-width: 680px) {
   .flow {
     grid-template-columns: repeat(3, minmax(118px, 1fr));
   }
@@ -171,7 +172,7 @@ const steps = computed(() => [
     display: none;
   }
 }
-@media (max-width: 640px) {
+@container (max-width: 420px) {
   .pipe-head {
     flex-direction: column;
   }
