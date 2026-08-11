@@ -344,7 +344,8 @@ const metrics = computed(() => {
   align-items: start;
 }
 .evidence-surface {
-  padding: 18px 18px 34px;
+  padding: 18px;
+  margin-bottom: 34px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -401,7 +402,8 @@ const metrics = computed(() => {
   }
   .run-glance,
   .evidence-surface {
-    padding: 14px 14px 36px;
+    padding: 14px;
+    margin-bottom: 36px;
   }
   .empty {
     padding: 24px 18px;
