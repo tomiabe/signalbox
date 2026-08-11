@@ -117,6 +117,7 @@ export function simulate(scenario: Scenario): SimResult {
   const checks = runChecks(scenario, maxRun, observedThroughput, leaked)
 
   return {
+    scenarioId: scenario.id,
     trace,
     checks,
     converged: checks.every((c) => c.pass),
@@ -138,6 +139,44 @@ function runChecks(
   const sustainedOk = observedThroughput >= scenario.targetRate
   const stallOk = maxRun < 6
   const integrityOk = leaked === 0
+
+  if (scenario.id === 'eval-regression') {
+    return [
+      {
+        id: 'tb_overall_score',
+        name: 'overall reasoning score',
+        desc: 'Model checkpoint scores above baseline threshold on reasoning benchmarks.',
+        pass: sustainedOk,
+        detail: {
+          cycles: 'reasoning tasks',
+          actual: `${(observedThroughput / scenario.targetRate * 90).toFixed(0)}% accuracy`,
+          expected: '>= 90% accuracy',
+        },
+      },
+      {
+        id: 'tb_instruction_adherence',
+        name: 'instruction adherence',
+        desc: 'Model follows formatting constraints without stalling on edge cases.',
+        pass: stallOk,
+        detail: {
+          cycles: 'format failures',
+          actual: `${maxRun} failures`,
+          expected: '< 6 failures',
+        },
+      },
+      {
+        id: 'tb_provenance_clean',
+        name: 'data provenance check',
+        desc: 'Data loader logs confirm no unlicensed pre-training content is present.',
+        pass: integrityOk,
+        detail: {
+          cycles: 'compliance audit',
+          actual: `${leaked} unlicensed blocks`,
+          expected: '0 unlicensed blocks',
+        },
+      },
+    ]
+  }
 
   return [
     {

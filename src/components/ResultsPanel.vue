@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { CheckCircle2, CircleAlert, FileCheck2, Loader2, RefreshCw, Sparkles, XCircle } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
+import { CheckCircle2, CircleAlert, Download, FileCheck2, Loader2, RefreshCw, Sparkles, XCircle } from 'lucide-vue-next'
 import { useWorkspaceStore } from '../stores/workspace'
 import type { Diagnosis } from '../lib/llm'
 
 const ws = useWorkspaceStore()
 const applying = ref(false)
 const reloading = ref(false)
+const isEval = computed(() => ws.preset.scenario.id === 'eval-regression')
+const successCopy = computed(() =>
+  isEval.value
+    ? 'All checks pass. The evaluation replay is deterministic, the data sources are governed, and the evidence packet can be reviewed without trusting the model blindly.'
+    : 'All checks pass. The replay is deterministic, the patch is scoped, and the evidence packet can be reviewed without trusting the model blindly.',
+)
 
 async function applyFix() {
   if (ws.running || reloading.value) return
@@ -38,6 +44,65 @@ watch(
 
 function dx(): Diagnosis | null {
   return ws.diagnosis
+}
+
+function exportPacket() {
+  if (!ws.result) return
+
+  const lines = [
+    'SignalBox Evidence Packet',
+    `scenario: ${ws.preset.scenario.name}`,
+    `id: ${ws.preset.scenario.id}`,
+    `status: ${ws.result.converged ? 'verified' : 'needs review'}`,
+    `seed: ${ws.preset.scenario.seed}`,
+    `cycles: ${ws.result.trace.length}`,
+    '',
+    'Intent',
+    ws.preset.intent,
+    '',
+    'Derived Contract',
+    ...ws.preset.known.map((item) => `- ${item}`),
+    '',
+    'Evidence Artifacts',
+    ...ws.preset.evidence.map((item) => `- ${item}`),
+    '',
+    'Provenance',
+    ...ws.preset.provenance.map((item) => `- ${item}`),
+    '',
+    'Verification',
+    ...ws.result.checks.map((check) => {
+      const actual = check.detail ? ` actual=${check.detail.actual}; expected=${check.detail.expected}` : ''
+      return `- ${check.id}: ${check.pass ? 'PASS' : 'FAIL'};${actual} ${check.desc}`
+    }),
+    '',
+    'Machine Diagnosis',
+    dx()?.headline ?? (ws.result.converged ? 'All checks pass.' : 'No diagnosis available.'),
+    dx()?.rootCause ?? '',
+    '',
+    'Proposed Patch',
+    ws.preset.fixedDesc,
+    '',
+    'Trace',
+    'cycle,state,beat,occupancy,credits,events',
+    ...ws.result.trace.map((c) => [
+      c.cycle,
+      c.producerState,
+      c.producerBeat ?? 'none',
+      c.occupancy,
+      c.credits,
+      c.events.join('|') || 'none',
+    ].join(',')),
+  ]
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `signalbox_evidence_${ws.preset.scenario.id}.txt`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
 }
 </script>
 
@@ -107,6 +172,10 @@ function dx(): Diagnosis | null {
           <RefreshCw v-else :size="15" />
           {{ reloading ? 'Re-running' : 'Re-run failing case' }}
         </button>
+        <button class="btn btn-outline" :disabled="ws.running || applying || reloading" @click="exportPacket">
+          <Download :size="15" />
+          Export packet
+        </button>
       </div>
     </section>
 
@@ -116,11 +185,15 @@ function dx(): Diagnosis | null {
       </div>
       <div>
         <h3 class="cv-title">Verified in {{ ws.result.iterations }} iterations</h3>
-        <p class="cv-sub">All checks pass. The replay is deterministic, the patch is scoped, and the evidence packet can be reviewed without trusting the model blindly.</p>
+        <p class="cv-sub">{{ successCopy }}</p>
         <button class="btn btn-outline compare" :disabled="ws.running || applying || reloading" @click="rerun">
           <span v-if="reloading"><Loader2 class="spin" :size="15" /></span>
           <RefreshCw v-else :size="15" />
           Restore failing packet
+        </button>
+        <button class="btn btn-outline compare" :disabled="ws.running || applying || reloading" @click="exportPacket">
+          <Download :size="15" />
+          Export packet
         </button>
       </div>
     </section>

@@ -29,9 +29,10 @@ const header = computed(() => {
 })
 
 const metrics = computed(() => {
+  const isEval = ws.preset.scenario.id === 'eval-regression'
   if (!ws.result) {
     return [
-      { label: 'trace', value: `${ws.preset.scenario.cycles} cyc` },
+      { label: isEval ? 'tasks' : 'trace', value: isEval ? `${ws.preset.scenario.cycles}` : `${ws.preset.scenario.cycles} cyc` },
       { label: 'seed', value: `${ws.preset.scenario.seed}` },
       { label: 'checks', value: '3' },
       { label: 'mode', value: 'ready' },
@@ -39,8 +40,8 @@ const metrics = computed(() => {
   }
 
   return [
-    { label: 'throughput', value: `${(ws.result.observedThroughput / ws.preset.scenario.targetRate * 100).toFixed(0)}%` },
-    { label: 'stalled', value: `${ws.result.stalledCycles} cyc` },
+    { label: isEval ? 'score' : 'throughput', value: `${(ws.result.observedThroughput / ws.preset.scenario.targetRate * (isEval ? 90 : 100)).toFixed(0)}%` },
+    { label: isEval ? 'stalls' : 'stalled', value: `${ws.result.stalledCycles} cyc` },
     { label: 'iteration', value: `${ws.result.iterations}` },
     { label: 'mode', value: ws.result.converged ? 'verified' : 'inspect' },
   ]
@@ -92,7 +93,7 @@ function restart() {
 
       <div v-else-if="phase === 'running'" class="running" aria-live="polite">
         <div class="run-glance">
-          <PipelineView :result="null" />
+          <PipelineView :result="null" :scenario-id="ws.preset.scenario.id" />
         </div>
         <div class="run-log">
           <div class="log-head mono">signalbox sim.log seed={{ ws.preset.scenario.seed }}</div>
@@ -120,7 +121,7 @@ function restart() {
 
       <div v-else class="review">
         <div class="evidence-surface">
-          <PipelineView :result="ws.result" />
+          <PipelineView :result="ws.result" :scenario-id="ws.preset.scenario.id" />
           <TimelineView :result="ws.result" :spans="ws.diagnosis?.spans" />
         </div>
         <ResultsPanel />

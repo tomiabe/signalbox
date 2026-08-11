@@ -33,6 +33,7 @@ export interface Check {
 }
 
 export interface SimResult {
+  scenarioId: string
   trace: Cycle[]
   checks: Check[]
   converged: boolean

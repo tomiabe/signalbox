@@ -13,8 +13,8 @@ export function setKey(key: string, base: string) {
   localStorage.setItem(BASE_STORAGE, base.trim())
 }
 
-const SYSTEM_PROMPT = `You are SMELTR, a verification coach inside a hardware design workspace.
-You explain simulation failures to engineers with precision. Be concise, technical, and calm.
+const SYSTEM_PROMPT = `You are SignalBox, a verification coach inside an evidence workspace for AI-generated engineering systems.
+You explain replay and evaluation failures to engineers with precision. Be concise, technical, and calm.
 Refer to check names and concrete numbers already present in the conversation. Do not invent checks.`
 
 async function callLLM(messages: { role: string; content: string }[]): Promise<string> {
@@ -55,6 +55,7 @@ export interface Diagnosis {
 export function spansFor(sim: SimResult): Diagnosis['spans'] {
   const t = sim.trace
   if (!t.length) return []
+  const isEval = sim.scenarioId === 'eval-regression'
 
   // Longest contiguous starvation window, drives tb_starvation_window.
   let sStart = -1
@@ -85,17 +86,57 @@ export function spansFor(sim: SimResult): Diagnosis['spans'] {
 
   const spans: Diagnosis['spans'] = []
   if (sStart >= 0)
-    spans.push({ checkId: 'tb_starvation_window', label: 'starvation window', start: sStart, end: sStart + sLen - 1 })
+    spans.push({
+      checkId: isEval ? 'tb_instruction_adherence' : 'tb_starvation_window',
+      label: isEval ? 'parser stall window' : 'starvation window',
+      start: sStart,
+      end: sStart + sLen - 1,
+    })
   if (firstDrop >= 0)
-    spans.push({ checkId: 'tb_credit_integrity', label: 'credit leak at RMW', start: firstDrop, end: dropEnd })
-  spans.push({ checkId: 'tb_throughput', label: 'full run', start: 0, end: t.length - 1 })
+    spans.push({
+      checkId: isEval ? 'tb_provenance_clean' : 'tb_credit_integrity',
+      label: isEval ? 'provenance breach' : 'credit leak at RMW',
+      start: firstDrop,
+      end: dropEnd,
+    })
+  spans.push({ checkId: isEval ? 'tb_overall_score' : 'tb_throughput', label: 'full run', start: 0, end: t.length - 1 })
   return spans
 }
 
 export function buildLocalDiagnosis(sim: SimResult, remedy: string): Diagnosis {
-  const integrity = sim.checks.find((c) => c.id === 'tb_credit_integrity')
-  const stall = sim.checks.find((c) => c.id === 'tb_starvation_window')
-  const through = sim.checks.find((c) => c.id === 'tb_throughput')
+  const integrity = sim.checks.find((c) => c.id === 'tb_credit_integrity' || c.id === 'tb_provenance_clean')
+  const stall = sim.checks.find((c) => c.id === 'tb_starvation_window' || c.id === 'tb_instruction_adherence')
+  const through = sim.checks.find((c) => c.id === 'tb_throughput' || c.id === 'tb_overall_score')
+
+  const isEval = sim.checks.some((c) => c.id === 'tb_provenance_clean')
+
+  if (isEval) {
+    return {
+      diagnosis: 'failed',
+      headline: 'TB_PROVENANCE_CLEAN fails: unlicensed training content detected.',
+      rootCause:
+        "The pre-training crawler scraped data from public forum archives containing legacy proprietary code snippets. During long-context retrieval, the model regurgitates these blocks verbatim, violating governance regulations and triggering compliance check failures.",
+      evidence: [
+        {
+          checkId: 'tb_provenance_clean',
+          cycles: `audit log: ${integrity?.detail?.actual ?? 'n/a'}`,
+          note: 'crawler seeds contained unlicensed source text. Copy-paste regurgitation risk detected on retrieval evaluation passes.',
+        },
+        {
+          checkId: 'tb_instruction_adherence',
+          cycles: `adherence: ${stall?.detail?.actual ?? 'n/a'}`,
+          note: 'When retrieval matches licensed seeds, the formatting constraints are ignored, triggering model parser stalls.',
+        },
+        {
+          checkId: 'tb_overall_score',
+          cycles: `accuracy: ${through?.detail?.actual ?? 'n/a'}`,
+          note: 'Reasoning score is maintained, but the compliance block prevents model checkpoint promotion.',
+        },
+      ],
+      fix: remedy,
+      spans: spansFor(sim),
+    }
+  }
 
   return {
     diagnosis: 'failed',
@@ -115,8 +156,8 @@ export function buildLocalDiagnosis(sim: SimResult, remedy: string): Diagnosis {
       },
       {
         checkId: 'tb_throughput',
-        cycles: `sustained ${through?.pass ? 'ok' : 'below target'}`,
-        note: `${through?.pass ? 'Throughput holds, so the trigger is conditional, not constant.' : 'Throughput drags from repeated starvation windows.'}`,
+        cycles: `throughput: ${through?.detail?.actual ?? 'n/a'}`,
+        note: 'The stall window collapses overall throughput below the target rate.',
       },
     ],
     fix: remedy,

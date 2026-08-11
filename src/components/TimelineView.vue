@@ -3,6 +3,7 @@ import { computed, ref, watch, nextTick } from 'vue'
 import { Crosshair } from 'lucide-vue-next'
 import type { SimResult } from '../engine/types'
 import type { Diagnosis } from '../lib/llm'
+import WaveformView from './WaveformView.vue'
 
 const props = defineProps<{
   result: SimResult | null
@@ -124,6 +125,14 @@ function spanLabel(c: (typeof trace.value)[number] | null) {
         @click="sel = sel === i ? null : i"
       ></button>
     </div>
+
+    <WaveformView
+      :result="result"
+      :selected="sel"
+      :hovered="hover"
+      @select="sel = $event"
+      @hover="hover = $event"
+    />
 
     <div class="tl-foot mono">
       <span>cycle</span><b class="cnum">{{ activeCycle ? activeCycle.cycle : '-' }}</b>

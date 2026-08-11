@@ -3,22 +3,38 @@ import { computed } from 'vue'
 import { Braces, ClipboardCheck, Cpu, DatabaseZap, FileWarning, ShieldCheck } from 'lucide-vue-next'
 import type { SimResult } from '../engine/types'
 
-const props = defineProps<{ result: SimResult | null }>()
+const props = defineProps<{
+  result: SimResult | null
+  scenarioId?: string
+}>()
 
 const cap = computed(() => Math.max(1, props.result?.capacity ?? 8))
 const occ = computed(() => props.result ? Math.round(props.result.maxOccupancy) : 0)
 const pct = computed(() => Math.min(100, Math.round((occ.value / cap.value) * 100)))
 const beats = computed(() => props.result?.totalBeats ?? 0)
 const stalled = computed(() => props.result?.stalledCycles ?? 0)
+const isEval = computed(() => (props.result?.scenarioId ?? props.scenarioId) === 'eval-regression')
 
 const steps = computed(() => [
   { key: 'intent', label: 'Intent', sub: 'plain language', icon: Braces, state: 'ok' },
-  { key: 'model', label: 'Model', sub: `${cap.value} slot FIFO`, icon: Cpu, state: props.result ? 'ok' : 'idle' },
-  { key: 'replay', label: 'Replay', sub: props.result ? `${beats.value} beats` : 'pending', icon: DatabaseZap, state: props.result ? 'ok' : 'idle' },
+  {
+    key: 'model',
+    label: 'Model',
+    sub: isEval.value ? 'eval runner' : `${cap.value} slot FIFO`,
+    icon: Cpu,
+    state: props.result ? 'ok' : 'idle',
+  },
+  {
+    key: 'replay',
+    label: 'Replay',
+    sub: props.result ? (isEval.value ? `${props.result.trace.length} tasks` : `${beats.value} beats`) : 'pending',
+    icon: DatabaseZap,
+    state: props.result ? 'ok' : 'idle',
+  },
   {
     key: 'evidence',
     label: 'Evidence',
-    sub: props.result ? `${stalled.value} stalled cycles` : 'not collected',
+    sub: props.result ? (isEval.value ? `${stalled.value} parser stalls` : `${stalled.value} stalled cycles`) : 'not collected',
     icon: props.result?.converged ? ShieldCheck : FileWarning,
     state: props.result?.converged ? 'ok' : props.result ? 'fail' : 'idle',
   },
@@ -33,8 +49,8 @@ const steps = computed(() => [
         <span class="eyebrow mono">evidence graph</span>
         <h2>Intent, model, replay, and review stay tied to one packet.</h2>
       </div>
-      <div class="meter" role="img" :aria-label="`${occ} of ${cap} FIFO slots occupied at peak`">
-        <span class="meter-label">peak FIFO</span>
+      <div class="meter" role="img" :aria-label="`${occ} of ${cap} ${isEval ? 'eval queue slots' : 'FIFO slots'} occupied at peak`">
+        <span class="meter-label">{{ isEval ? 'peak queue' : 'peak FIFO' }}</span>
         <span class="meter-bar"><i :style="{ width: pct + '%' }"></i></span>
         <span class="meter-value mono">{{ occ }}/{{ cap }}</span>
       </div>

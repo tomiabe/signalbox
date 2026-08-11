@@ -82,6 +82,42 @@ export const presets: ScenarioPreset[] = [
       leak: 3,
     },
   },
+  {
+    intent:
+      'Evaluate model checkpoint checkpoint_r32_v4 performance on hardware reasoning and long-context specification retrieval. Overall score must be >= 90% and training data provenance must be fully verified and free of licensing violations.',
+    known: [
+      'Model checkpoint: checkpoint_r32_v4',
+      'Test suite: 160 general reasoning & retrieval tasks',
+      'Baseline capability threshold: 90% accuracy',
+      'Compliance rules: zero unlicensed code extraction',
+    ],
+    evidence: [
+      'testbench: tb_overall_score, tb_instruction_adherence, tb_provenance_clean',
+      'trace: 160 evaluations, mock seed 812',
+      'artifact: accuracy curve, license validation log, bias markers',
+    ],
+    provenance: [
+      'Source: internal training evaluation framework',
+      'License: open source benchmark sets',
+      'Governance: audit log tracks model performance across epochs',
+    ],
+    fixedDesc:
+      '# exclude legacy forum archive to clean training data\ncrawler.add_seed(gov_licensed_standards); # verify provenance',
+    scenario: {
+      id: 'eval-regression',
+      name: 'eval_runner/spec_llm',
+      summary: 'eval checkpoint verification: instruction following and retrieval',
+      fixed: false,
+      seed: 812,
+      cycles: 160,
+      burst: 8,
+      burstEvery: 4,
+      readBurst: 0.48,
+      targetRate: 0.5,
+      capacity: 8,
+      leak: 3,
+    },
+  },
 ]
 
 export function defaultPreset(): ScenarioPreset {
