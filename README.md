@@ -4,6 +4,8 @@
 
 [Live demo](https://tomiabe.github.io/signalbox/)
 
+![SignalBox evidence review workspace](docs/assets/signalbox-review.png)
+
 > Don't trust the output. Trace the evidence.
 
 The point of the project is not to build a complete chip-design engine. It is a product-shaped portfolio case study about the human side of AI-native engineering: how a reviewer decides whether machine-generated work deserves trust.

@@ -47,7 +47,7 @@ async function runFromPacket() {
     <textarea
       id="intent-input"
       class="textarea intent"
-      :model-value="ws.preset.intent"
+      :value="ws.preset.intent"
       :disabled="ws.running"
       spellcheck="false"
     ></textarea>
