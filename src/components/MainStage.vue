@@ -232,6 +232,7 @@ function restart() {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 0;
 }
 .empty {
   display: flex;
@@ -280,9 +281,9 @@ function restart() {
 }
 .running {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
-  min-height: 320px;
+  min-height: clamp(520px, calc(100dvh - 220px), 760px);
   align-items: start;
 }
 .run-glance,
@@ -293,6 +294,7 @@ function restart() {
 }
 .run-glance {
   padding: 18px;
+  min-height: 260px;
 }
 .run-log {
   padding: 14px;
@@ -348,6 +350,7 @@ function restart() {
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
   gap: 16px;
   align-items: start;
+  min-height: clamp(520px, calc(100dvh - 220px), 760px);
 }
 .evidence-surface {
   padding: 18px;
@@ -357,6 +360,7 @@ function restart() {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--bg-1) 88%, transparent);
+  min-width: 0;
 }
 .stage-foot {
   display: flex;
@@ -392,6 +396,25 @@ function restart() {
 @media (max-width: 520px) {
   .stage {
     padding: 16px 14px 18px;
+  }
+  .stage-head {
+    align-items: flex-start;
+  }
+  .sh-left {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sh-sub {
+    white-space: normal;
+  }
+  .running,
+  .review {
+    min-height: auto;
+  }
+  .run-glance,
+  .evidence-surface {
+    padding: 14px;
   }
   .empty {
     padding: 24px 18px;

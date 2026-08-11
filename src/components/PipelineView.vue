@@ -76,9 +76,9 @@ const steps = computed(() => [
 }
 .pipe-head {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
 }
 .eyebrow {
   display: block;
@@ -97,10 +97,11 @@ const steps = computed(() => [
 }
 .meter {
   display: grid;
-  grid-template-columns: auto 86px auto;
+  grid-template-columns: auto minmax(86px, 1fr) auto;
   align-items: center;
   gap: 8px;
-  min-width: 220px;
+  width: 100%;
+  min-width: 0;
   padding: 9px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -189,13 +190,6 @@ const steps = computed(() => [
   }
 }
 @container (max-width: 420px) {
-  .pipe-head {
-    flex-direction: column;
-  }
-  .meter {
-    width: 100%;
-    min-width: 0;
-  }
   .flow {
     grid-template-columns: 1fr;
   }

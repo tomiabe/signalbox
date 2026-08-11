@@ -14,13 +14,13 @@ const emit = defineEmits<{
 }>()
 
 const trace = computed(() => props.result?.trace ?? [])
-const width = computed(() => Math.max(620, trace.value.length * 7 + 32))
+const width = 1000
 const height = 214
-const left = 72
-const right = 20
+const left = 96
+const right = 28
 const laneHeight = 38
 const laneGap = 8
-const plotWidth = computed(() => width.value - left - right)
+const plotWidth = computed(() => width - left - right)
 const col = computed(() => plotWidth.value / Math.max(1, trace.value.length - 1))
 
 const cursorIdx = computed(() => props.selected ?? props.hovered)
@@ -116,8 +116,8 @@ function selectCycle(index: number) {
       >
         <g v-for="(track, i) in tracks" :key="track.id">
           <line class="lane-rule" :x1="left" :x2="width - right" :y1="laneMid(i)" :y2="laneMid(i)" />
-          <text class="lane-label" x="0" :y="laneMid(i) - 3">{{ track.label }}</text>
-          <text class="lane-sub" x="0" :y="laneMid(i) + 12">{{ track.sub }}</text>
+          <text class="lane-label" x="18" :y="laneMid(i) - 3">{{ track.label }}</text>
+          <text class="lane-sub" x="18" :y="laneMid(i) + 12">{{ track.sub }}</text>
           <path
             class="wave-line"
             :d="stepPath(i, track.value, track.kind === 'level' ? track.max : 1)"
@@ -196,16 +196,20 @@ function selectCycle(index: number) {
   font-size: 11.5px;
 }
 .wave-scroll {
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--bg-2) 74%, transparent), transparent),
     var(--bg-1);
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
 }
 .wave-svg {
   display: block;
+  width: 100%;
+  height: auto;
+  min-height: 172px;
 }
 .lane-rule {
   stroke: var(--border);
