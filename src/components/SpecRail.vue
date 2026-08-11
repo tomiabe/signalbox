@@ -87,7 +87,7 @@ async function runFromPacket() {
       <button class="btn btn-accent run" :disabled="ws.running" @click="runFromPacket">
         <Play v-if="!ws.running" :size="15" />
         <span v-else class="spinner" />
-        {{ ws.running ? 'Running' : 'Run simulation' }}
+        {{ ws.running ? 'Running' : 'Run evidence replay' }}
       </button>
       <button class="btn btn-ghost" aria-label="Reset simulation" :disabled="ws.running" @click="ws.reset()">
         <RotateCcw :size="15" />

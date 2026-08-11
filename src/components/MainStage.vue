@@ -49,9 +49,6 @@ const metrics = computed(() => {
   ]
 })
 
-function restart() {
-  ws.reset()
-}
 </script>
 
 <template>
@@ -132,12 +129,9 @@ function restart() {
       </div>
     </div>
 
-    <div v-if="phase === 'review' || phase === 'converged'" class="stage-foot">
+    <div v-if="phase === 'review'" class="stage-foot">
       <button v-if="phase === 'review'" class="btn btn-accent mobile-review-btn" @click="emit('show-review')">
         Review findings
-      </button>
-      <button class="btn btn-outline" @click="restart">
-        Reset run
       </button>
     </div>
   </main>
